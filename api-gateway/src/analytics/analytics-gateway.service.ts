@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 import { firstValueFrom } from 'rxjs';
 import { forwardAuthorization } from '../http/internal-headers';
+import { proxyDownstream } from '../http/proxy-downstream';
 import { resolveCatalogServiceUrl } from '../http/service-urls';
 
 @Injectable()
@@ -18,10 +19,13 @@ export class AnalyticsGatewayService {
   }
 
   getSummary(request: Request) {
-    return firstValueFrom(
-      this.httpService.get(`${this.catalogServiceUrl}/api/analytics/summary`, {
-        headers: forwardAuthorization(request),
-      }),
-    ).then((response) => response.data);
+    return proxyDownstream(async () => {
+      const response = await firstValueFrom(
+        this.httpService.get(`${this.catalogServiceUrl}/api/analytics/summary`, {
+          headers: forwardAuthorization(request),
+        }),
+      );
+      return response.data;
+    });
   }
 }

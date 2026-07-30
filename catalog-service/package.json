@@ -36,6 +36,8 @@
     "@opentelemetry/sdk-node": "^0.220.0",
     "@opentelemetry/winston-transport": "^0.30.0",
     "axios": "^1.7.9",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.4",
     "dotenv": "^17.4.2",
     "ioredis": "^5.11.1",
     "jose": "^5.9.6",

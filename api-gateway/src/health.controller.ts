@@ -12,7 +12,7 @@ export class HealthController {
   @Public()
   @Get('health')
   health() {
-    this.logger.info('Checking service health ...');
+    this.logger.debug('Health check');
     return { status: 'ok' };
   }
 }

@@ -1,18 +1,26 @@
-import 'dotenv/config';  // must be first
-import './instrumentation';   // start OTel second
+import 'dotenv/config';
+import './instrumentation';
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 function validateEnv(): void {
-  const required = ['DB_HOST', 'DB_USER', 'DB_PASSWORD', 'DB_NAME', 'RABBITMQ_URL'];
+  const required = [
+    'DB_HOST',
+    'DB_USER',
+    'DB_PASSWORD',
+    'DB_NAME',
+    'RABBITMQ_URL',
+    'KEYCLOAK_JWKS_URI',
+  ];
   const missing = required.filter((key) => !process.env[key]?.trim());
   if (missing.length === 0) return;
 
   console.error(
     `\n[Config] notification-service is missing required environment variables:\n` +
-    missing.map((k) => `  • ${k}`).join('\n') +
-    `\n\nFix: ensure these are set in your .env file or docker-compose.yml environment section.\n`,
+      missing.map((k) => `  • ${k}`).join('\n') +
+      `\n\nFix: ensure these are set in your .env file or docker-compose.yml environment section.\n`,
   );
   process.exit(1);
 }
@@ -21,6 +29,14 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
 
   app.setGlobalPrefix('api');
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+      transformOptions: { enableImplicitConversion: true },
+    }),
+  );
 
   if (process.env.NODE_ENV !== 'production') {
     const config = new DocumentBuilder()
@@ -48,6 +64,7 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT ?? 4002);
 }
+
 validateEnv();
 bootstrap().catch((error: unknown) => {
   const message = error instanceof Error ? error.message : String(error);

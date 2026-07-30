@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 import { firstValueFrom } from 'rxjs';
 import { forwardAuthorization } from '../http/internal-headers';
+import { proxyDownstream } from '../http/proxy-downstream';
 import { resolveOrderServiceUrl } from '../http/service-urls';
 import { CreateOrderDto, UpdateOrderStatusDto } from './create-order.dto';
 
@@ -19,36 +20,48 @@ export class OrdersGatewayService {
   }
 
   createOrder(dto: CreateOrderDto, request: Request) {
-    return firstValueFrom(
-      this.httpService.post(`${this.orderServiceUrl}/api/orders`, dto, {
-        headers: forwardAuthorization(request),
-      }),
-    ).then((response) => response.data);
+    return proxyDownstream(async () => {
+      const response = await firstValueFrom(
+        this.httpService.post(`${this.orderServiceUrl}/api/orders`, dto, {
+          headers: forwardAuthorization(request),
+        }),
+      );
+      return response.data;
+    });
   }
 
   getMyOrders(request: Request) {
-    return firstValueFrom(
-      this.httpService.get(`${this.orderServiceUrl}/api/orders/mine`, {
-        headers: forwardAuthorization(request),
-      }),
-    ).then((response) => response.data);
+    return proxyDownstream(async () => {
+      const response = await firstValueFrom(
+        this.httpService.get(`${this.orderServiceUrl}/api/orders/mine`, {
+          headers: forwardAuthorization(request),
+        }),
+      );
+      return response.data;
+    });
   }
 
   getAllOrders(request: Request) {
-    return firstValueFrom(
-      this.httpService.get(`${this.orderServiceUrl}/api/orders`, {
-        headers: forwardAuthorization(request),
-      }),
-    ).then((response) => response.data);
+    return proxyDownstream(async () => {
+      const response = await firstValueFrom(
+        this.httpService.get(`${this.orderServiceUrl}/api/orders`, {
+          headers: forwardAuthorization(request),
+        }),
+      );
+      return response.data;
+    });
   }
 
   updateOrderStatus(id: number, dto: UpdateOrderStatusDto, request: Request) {
-    return firstValueFrom(
-      this.httpService.patch(
-        `${this.orderServiceUrl}/api/orders/${id}/status`,
-        dto,
-        { headers: forwardAuthorization(request) },
-      ),
-    ).then((response) => response.data);
+    return proxyDownstream(async () => {
+      const response = await firstValueFrom(
+        this.httpService.patch(
+          `${this.orderServiceUrl}/api/orders/${id}/status`,
+          dto,
+          { headers: forwardAuthorization(request) },
+        ),
+      );
+      return response.data;
+    });
   }
 }

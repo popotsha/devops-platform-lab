@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 import { firstValueFrom } from 'rxjs';
 import { forwardAuthorization } from '../http/internal-headers';
+import { proxyDownstream } from '../http/proxy-downstream';
 import { resolveNotificationServiceUrl } from '../http/service-urls';
 
 @Injectable()
@@ -18,10 +19,13 @@ export class NotificationsGatewayService {
   }
 
   getAll(request: Request) {
-    return firstValueFrom(
-      this.httpService.get(`${this.notificationServiceUrl}/api/notifications`, {
-        headers: forwardAuthorization(request),
-      }),
-    ).then((response) => response.data);
+    return proxyDownstream(async () => {
+      const response = await firstValueFrom(
+        this.httpService.get(`${this.notificationServiceUrl}/api/notifications`, {
+          headers: forwardAuthorization(request),
+        }),
+      );
+      return response.data;
+    });
   }
 }

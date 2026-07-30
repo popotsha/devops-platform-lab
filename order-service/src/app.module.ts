@@ -26,7 +26,8 @@ import { RedisModule } from './redis/redis.module';
       password: process.env.DB_PASSWORD ?? 'postgres',
       database: process.env.DB_NAME ?? 'order_db',
       entities: [Order],
-      synchronize: true,
+      // Community Edition: schema auto-sync for local demos. Set TYPEORM_SYNCHRONIZE=false when using migrations.
+      synchronize: process.env.TYPEORM_SYNCHRONIZE !== 'false',
       autoLoadEntities: true,
     }),
     MessagingModule,

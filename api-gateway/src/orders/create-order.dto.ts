@@ -2,11 +2,9 @@ import { Type } from 'class-transformer';
 import {
   ArrayMinSize,
   IsArray,
+  IsIn,
   IsInt,
-  IsOptional,
   IsPositive,
-  IsString,
-  MinLength,
   ValidateNested,
 } from 'class-validator';
 
@@ -28,7 +26,10 @@ export class CreateOrderDto {
   items: CreateOrderItemDto[];
 }
 
+export const ORDER_STATUSES = ['pending', 'confirmed', 'shipped', 'cancelled'] as const;
+export type OrderStatus = (typeof ORDER_STATUSES)[number];
+
 export class UpdateOrderStatusDto {
-  @IsString()
-  status: 'pending' | 'confirmed' | 'shipped' | 'cancelled';
+  @IsIn(ORDER_STATUSES)
+  status: OrderStatus;
 }

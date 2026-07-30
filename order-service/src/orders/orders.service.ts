@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -12,8 +11,6 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { Order } from './entities/order.entity';
 
-const ALLOWED_STATUSES = new Set(['pending', 'confirmed', 'shipped', 'cancelled']);
-
 @Injectable()
 export class OrdersService {
   constructor(
@@ -24,17 +21,9 @@ export class OrdersService {
   ) {}
 
   async create(dto: CreateOrderDto, user: UserContext) {
-    if (!dto.items?.length) {
-      throw new BadRequestException('At least one order item is required');
-    }
-
     const orders: Order[] = [];
 
     for (const item of dto.items) {
-      if (!item.productId || item.quantity < 1) {
-        throw new BadRequestException('Invalid order item');
-      }
-
       const product = await this.catalogClient.getProduct(item.productId);
 
       orders.push(
@@ -66,19 +55,17 @@ export class OrdersService {
     return this.orderRepository.find({ order: { createdAt: 'DESC' } });
   }
 
+  /** Aggregate counts without loading every order row into memory. */
   async getStats() {
-    const orders = await this.orderRepository.find();
-    return {
-      orderCount: orders.length,
-      confirmedOrders: orders.filter((order) => order.status === 'confirmed').length,
-    };
+    const [orderCount, confirmedOrders] = await Promise.all([
+      this.orderRepository.count(),
+      this.orderRepository.count({ where: { status: 'confirmed' } }),
+    ]);
+
+    return { orderCount, confirmedOrders };
   }
 
   async updateStatus(id: number, dto: UpdateOrderStatusDto) {
-    if (!ALLOWED_STATUSES.has(dto.status)) {
-      throw new BadRequestException('Invalid order status');
-    }
-
     const order = await this.orderRepository.findOneBy({ id });
     if (!order) {
       throw new NotFoundException(`Order ${id} not found`);

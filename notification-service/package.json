@@ -35,6 +35,8 @@
     "@opentelemetry/sdk-node": "^0.220.0",
     "@opentelemetry/winston-transport": "^0.30.0",
     "amqplib": "^0.10.9",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.4",
     "dotenv": "^17.4.2",
     "ioredis": "^5.11.1",
     "jose": "^5.9.6",
@@ -57,7 +59,6 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.0",
     "@types/nodemailer": "^6.4.17",
-    "@types/nodemailer": "^6.4.17",
     "@types/supertest": "^7.0.0",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
@@ -75,13 +76,19 @@
     "typescript-eslint": "^8.20.0"
   },
   "jest": {
-    "moduleFileExtensions": ["js", "json", "ts"],
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
-    "collectCoverageFrom": ["**/*.(t|j)s"],
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
   }

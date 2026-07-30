@@ -1,4 +1,13 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Public } from '../auth/public.decorator';
 import { Roles } from '../auth/roles.decorator';
@@ -21,7 +30,7 @@ export class ProductsController {
   @ApiOperation({ summary: 'List all products' })
   @ApiResponse({ status: 200, description: 'List of products.', type: [Product] })
   findAll() {
-    this.logger.info('Listing all products ...');
+    this.logger.info('Listing all products');
     return this.productsService.findAll();
   }
 
@@ -29,9 +38,9 @@ export class ProductsController {
   @Get(':id')
   @ApiOperation({ summary: 'Get product details by id' })
   @ApiResponse({ status: 200, description: 'Product details.', type: Product })
-  findOne(@Param('id') id: string) {
-    this.logger.info('Fetching product ...');
-    return this.productsService.findOne(Number(id));
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    this.logger.info('Fetching product', { productId: id });
+    return this.productsService.findOne(id);
   }
 
   @Post()
@@ -40,7 +49,7 @@ export class ProductsController {
   @ApiOperation({ summary: 'Create a new product' })
   @ApiResponse({ status: 201, description: 'Product created successfully.', type: Product })
   create(@Body() createProductDto: CreateProductDto) {
-    this.logger.info('Creating product ...');
+    this.logger.info('Creating product', { name: createProductDto.name });
     return this.productsService.create(createProductDto);
   }
 
@@ -49,9 +58,12 @@ export class ProductsController {
   @Roles('manager')
   @ApiOperation({ summary: 'Update a product' })
   @ApiResponse({ status: 200, description: 'Product updated successfully.', type: Product })
-  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
-    this.logger.info('Updating product ...');
-    return this.productsService.update(Number(id), updateProductDto);
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateProductDto: UpdateProductDto,
+  ) {
+    this.logger.info('Updating product', { productId: id });
+    return this.productsService.update(id, updateProductDto);
   }
 
   @Delete(':id')
@@ -59,8 +71,8 @@ export class ProductsController {
   @Roles('manager')
   @ApiOperation({ summary: 'Delete a product' })
   @ApiResponse({ status: 200, description: 'Product deleted successfully.' })
-  remove(@Param('id') id: string) {
-    this.logger.info('Deleting product ...');
-    return this.productsService.remove(Number(id));
+  remove(@Param('id', ParseIntPipe) id: number) {
+    this.logger.info('Deleting product', { productId: id });
+    return this.productsService.remove(id);
   }
 }

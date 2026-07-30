@@ -6,14 +6,19 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
 function validateEnv(): void {
-  const required = ['KEYCLOAK_JWKS_URI', 'CATALOG_SERVICE_URL', 'ORDER_SERVICE_URL', 'NOTIFICATION_SERVICE_URL'];
+  const required = [
+    'KEYCLOAK_JWKS_URI',
+    'CATALOG_SERVICE_URL',
+    'ORDER_SERVICE_URL',
+    'NOTIFICATION_SERVICE_URL',
+  ];
   const missing = required.filter((key) => !process.env[key]?.trim());
   if (missing.length === 0) return;
 
   console.error(
     `\n[Config] api-gateway is missing required environment variables:\n` +
-    missing.map((k) => `  • ${k}`).join('\n') +
-    `\n\nFix: ensure these are set in your .env file or docker-compose.yml environment section.\n`,
+      missing.map((k) => `  • ${k}`).join('\n') +
+      `\n\nFix: ensure these are set in your .env file or docker-compose.yml environment section.\n`,
   );
   process.exit(1);
 }
@@ -49,7 +54,9 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
+      forbidNonWhitelisted: true,
       transform: true,
+      transformOptions: { enableImplicitConversion: true },
     }),
   );
 

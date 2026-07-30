@@ -18,7 +18,7 @@ export class AppController {
   @ApiResponse({ status: 200, description: 'Service is healthy.' })
   @ApiResponse({ status: 503, description: 'Service is degraded (e.g. database unreachable).' })
   async getHealth(): Promise<HealthStatus> {
-    this.logger.info('Checking service health ...');
+    this.logger.debug('Health check');
     const health = await this.appService.getHealth();
 
     if (health.status !== 'ok') {

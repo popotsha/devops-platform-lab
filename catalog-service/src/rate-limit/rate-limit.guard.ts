@@ -6,8 +6,6 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Reflector } from '@nestjs/core';
-import { IS_PUBLIC_KEY } from '../auth/public.decorator';
 import { RedisService } from '../redis/redis.service';
 
 @Injectable()
@@ -18,7 +16,6 @@ export class RateLimitGuard implements CanActivate {
   constructor(
     private readonly redis: RedisService,
     private readonly configService: ConfigService,
-    private readonly reflector: Reflector,
   ) {
     const ttlMs = Number(this.configService.get<string>('RATE_LIMIT_TTL_MS', '60000'));
     this.windowSeconds = Math.max(Math.ceil(ttlMs / 1000), 1);
@@ -27,11 +24,12 @@ export class RateLimitGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const identifier = this.resolveIdentifier(request, context);
+    const identifier = this.resolveIdentifier(request);
     const windowStart = Math.floor(Date.now() / 1000 / this.windowSeconds);
     const key = `ratelimit:${identifier}:${windowStart}`;
 
     const count = await this.redis.incr(key);
+    // Fail open when Redis is unavailable so local demos keep working.
     if (count === null) {
       return true;
     }
@@ -41,19 +39,17 @@ export class RateLimitGuard implements CanActivate {
     }
 
     if (count > this.maxRequests) {
-      throw new HttpException(
-        'Too many requests',
-        HttpStatus.TOO_MANY_REQUESTS,
-      );
+      throw new HttpException('Too many requests', HttpStatus.TOO_MANY_REQUESTS);
     }
 
     return true;
   }
 
-  private resolveIdentifier(
-    request: { ip?: string; user?: { sub?: string }; headers?: Record<string, string | string[] | undefined> },
-    context: ExecutionContext,
-  ): string {
+  private resolveIdentifier(request: {
+    ip?: string;
+    user?: { sub?: string };
+    headers?: Record<string, string | string[] | undefined>;
+  }): string {
     if (request.user?.sub) {
       return `user:${request.user.sub}`;
     }
@@ -63,17 +59,12 @@ export class RateLimitGuard implements CanActivate {
       return `apikey:${apiKey}`;
     }
 
-    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
-
     const forwarded = request.headers?.['x-forwarded-for'];
     const ip =
       (typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : undefined) ||
       request.ip ||
       'unknown';
 
-    return isPublic ? `ip:${ip}` : `ip:${ip}`;
+    return `ip:${ip}`;
   }
 }

@@ -13,7 +13,7 @@ import { resolveOtlpHeaders } from './telemetry/otlp-headers';
 const serviceName = process.env.OTEL_SERVICE_NAME || 'notification-service';
 
 if (process.env.OTEL_ENABLED !== 'true') {
-  console.log(`[OTel] Telemetry disabled for ${serviceName} — set OTEL_ENABLED=true in catalog-service/.env to enable`);
+  console.log(`[OTel] Telemetry disabled for ${serviceName} — set OTEL_ENABLED=true (root .env) to enable`);
 } else {
   if (process.env.OTEL_LOG_LEVEL) {
     const level =
