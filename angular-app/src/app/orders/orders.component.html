@@ -1,0 +1,95 @@
+@if (isLoading) {
+  <section class="panel loading-panel">
+    <p>Loading orders...</p>
+  </section>
+} @else if (!auth.isAuthenticated()) {
+  <section class="panel">
+    <h2>Sign in required</h2>
+    <p class="helper-text">Log in with SSO to view orders.</p>
+  </section>
+} @else {
+  <app-role-access-banner [roles]="userRoles" />
+
+  <section class="section-header">
+    <div>
+      <p class="section-eyebrow">Operations</p>
+      <h2>Orders</h2>
+      <p class="helper-text">
+        {{
+          canManageProducts
+            ? 'Paid checkout orders across all customers.'
+            : 'Orders you placed from the Storefront cart.'
+        }}
+      </p>
+    </div>
+  </section>
+
+  @if (loadError) {
+    <p class="form-error">{{ loadError }}</p>
+  }
+
+  @if (canManageProducts) {
+    <article class="panel ops-panel">
+      @if (orders.length === 0) {
+        <p class="helper-text">No orders yet. Customers place orders from the Storefront cart.</p>
+      } @else {
+        <div class="ops-table-wrap">
+          <table class="ops-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Customer</th>
+                <th>Product</th>
+                <th>Qty</th>
+                <th>Total</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (order of orders; track order.id) {
+                <tr>
+                  <td>#{{ order.id }}</td>
+                  <td>{{ order.userEmail || order.userSub }}</td>
+                  <td>{{ order.productName }}</td>
+                  <td>{{ order.quantity }}</td>
+                  <td>${{ (+order.unitPrice * order.quantity) | number: '1.2-2' }}</td>
+                  <td>
+                    <span class="status-pill status-{{ order.status }}">{{ order.status }}</span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </article>
+  } @else {
+    <section class="orders-panel">
+      <div class="orders-panel-header">
+        <h3>
+          Orders
+          @if (orders.length > 0) {
+            <span>({{ orders.length }})</span>
+          }
+        </h3>
+      </div>
+      @if (orders.length === 0) {
+        <p class="helper-text">No orders yet. Place one from the Storefront cart.</p>
+      } @else {
+        <ul class="orders-list">
+          @for (order of orders; track order.id) {
+            <li>
+              <div>
+                <strong>{{ order.productName }}</strong>
+                <span class="helper-text">
+                  Qty {{ order.quantity }} · ${{ order.unitPrice | number: '1.2-2' }}
+                </span>
+              </div>
+              <span class="status-pill status-{{ order.status }}">{{ order.status }}</span>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+}

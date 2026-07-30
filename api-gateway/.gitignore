@@ -1,0 +1,17 @@
+# compiled output
+/dist
+/node_modules
+
+# Logs
+logs
+*.log
+
+# OS
+.DS_Store
+
+# dotenv
+.env
+
+# IDE
+.vscode/*
+!.vscode/settings.json

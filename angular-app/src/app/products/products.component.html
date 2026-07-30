@@ -1,0 +1,173 @@
+@if (isLoading) {
+  <section class="panel loading-panel">
+    <p>Loading products...</p>
+  </section>
+} @else if (!auth.isAuthenticated()) {
+  <section class="panel">
+    <h2>Sign in required</h2>
+    <p class="helper-text">Log in with SSO to view the product catalog.</p>
+  </section>
+} @else {
+  <app-role-access-banner [roles]="userRoles" />
+
+  <section class="section-header">
+    <div>
+      <p class="section-eyebrow">Inventory</p>
+      <h2>{{ canManageProducts ? 'Manage products' : 'Product inventory (read-only)' }}</h2>
+      <p class="helper-text">
+        {{
+          canManageProducts
+            ? 'Create, edit, export, and remove catalog items.'
+            : 'Browse the catalog. Place orders from the Storefront.'
+        }}
+      </p>
+    </div>
+
+    @if (canManageProducts) {
+      <div class="header-inline-actions">
+        <button type="button" class="btn btn-secondary" (click)="exportCatalog()">
+          Export JSON
+        </button>
+        <button type="button" class="btn btn-primary" (click)="toggleAddProduct()">
+          {{ showAddProduct ? 'Close form' : '+ Add product' }}
+        </button>
+      </div>
+    }
+  </section>
+
+  @if (exportMessage) {
+    <p class="success-message">{{ exportMessage }}</p>
+  }
+
+  @if (showAddProduct && canManageProducts) {
+    <form class="panel product-form" [formGroup]="productForm" (ngSubmit)="submitProduct()">
+      <div class="product-form-header">
+        <p class="section-eyebrow">New product</p>
+        <h3>Add to catalog</h3>
+      </div>
+      <div class="form-grid">
+        <label>
+          Name
+          <input formControlName="name" placeholder="Product name" />
+        </label>
+        <label>
+          Price
+          <input formControlName="price" type="number" min="0.01" step="0.01" placeholder="0.00" />
+        </label>
+      </div>
+      <label>
+        Description
+        <textarea formControlName="description" rows="3" placeholder="Optional description"></textarea>
+      </label>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Saving...' : 'Save product' }}
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="toggleAddProduct()">
+          Cancel
+        </button>
+      </div>
+    </form>
+  }
+
+  @if (editingProductId !== null && canManageProducts) {
+    <form
+      class="panel product-form product-form-edit"
+      [formGroup]="editForm"
+      (ngSubmit)="submitEdit(editingProductId!)"
+    >
+      <div class="product-form-header">
+        <p class="section-eyebrow">Edit product #{{ editingProductId }}</p>
+        <h3>Update catalog item</h3>
+      </div>
+      <div class="form-grid">
+        <label>
+          Name
+          <input formControlName="name" placeholder="Product name" />
+        </label>
+        <label>
+          Price
+          <input formControlName="price" type="number" min="0.01" step="0.01" placeholder="0.00" />
+        </label>
+      </div>
+      <label>
+        Description
+        <textarea formControlName="description" rows="3" placeholder="Optional description"></textarea>
+      </label>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Saving...' : 'Save changes' }}
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="cancelEdit()">
+          Cancel
+        </button>
+      </div>
+    </form>
+  }
+
+  @if (formError) {
+    <p class="form-error">{{ formError }}</p>
+  }
+
+  @if (productsError) {
+    <p class="form-error">{{ productsError }}</p>
+  }
+
+  @if (!productsError && products.length === 0) {
+    <section class="panel empty-state">
+      <h3>No products yet</h3>
+      <p>Managers can seed the catalog from this page.</p>
+    </section>
+  } @else if (!productsError && canManageProducts) {
+    <section class="product-grid">
+      @for (product of products; track product.id) {
+        <article
+          class="product-card panel"
+          [class.product-card-editing]="editingProductId === product.id"
+        >
+          <div class="product-card-top">
+            <span class="product-id">#{{ product.id }}</span>
+            <span class="product-price">${{ product.price | number: '1.2-2' }}</span>
+          </div>
+          <h3>{{ product.name }}</h3>
+          <p>{{ product.description || 'No description provided.' }}</p>
+          @if (editingProductId === product.id) {
+            <p class="product-editing-hint">Editing above…</p>
+          } @else {
+            <div class="product-actions">
+              <button type="button" class="btn btn-secondary btn-sm" (click)="startEdit(product)">
+                Edit
+              </button>
+              <button type="button" class="btn btn-danger btn-sm" (click)="deleteProduct(product)">
+                Delete
+              </button>
+            </div>
+          }
+        </article>
+      }
+    </section>
+  } @else if (!productsError) {
+    <section class="panel inventory-table">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (product of products; track product.id) {
+            <tr>
+              <td>#{{ product.id }}</td>
+              <td>{{ product.name }}</td>
+              <td>{{ product.description || '—' }}</td>
+              <td>${{ product.price | number: '1.2-2' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  }
+}

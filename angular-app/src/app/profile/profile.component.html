@@ -1,0 +1,55 @@
+@if (auth.userProfile(); as profile) {
+  <section class="profile-card panel">
+    <h2>My Profile</h2>
+    <dl class="profile-details">
+      <div>
+        <dt>Username</dt>
+        <dd>{{ auth.displayName() }}</dd>
+      </div>
+      <div>
+        <dt>Email</dt>
+        <dd>{{ profile.email }}</dd>
+      </div>
+      <div>
+        <dt>Roles</dt>
+        <dd>{{ profile.roles.length ? profile.roles.join(', ') : 'No roles assigned' }}</dd>
+      </div>
+      <div>
+        <dt>Active app</dt>
+        <dd>Admin Console (Angular)</dd>
+      </div>
+    </dl>
+
+    <h3>Admin console permissions</h3>
+    <div class="permissions-matrix">
+      <div>
+        <span>View inventory</span>
+        <span>Allowed</span>
+      </div>
+      <div>
+        <span>Create products</span>
+        <span>{{ profile.roles.includes('manager') ? 'Allowed' : 'Locked' }}</span>
+      </div>
+      <div>
+        <span>Edit products</span>
+        <span>{{ profile.roles.includes('manager') ? 'Allowed' : 'Locked' }}</span>
+      </div>
+      <div>
+        <span>Delete products</span>
+        <span>{{ profile.roles.includes('manager') ? 'Allowed' : 'Locked' }}</span>
+      </div>
+      <div>
+        <span>Analytics & export</span>
+        <span>{{ profile.roles.includes('manager') ? 'Allowed' : 'Locked' }}</span>
+      </div>
+      <div>
+        <span>Notifications</span>
+        <span>{{ profile.roles.includes('manager') ? 'Allowed' : 'Locked' }}</span>
+      </div>
+      <div>
+        <span>Shopping cart</span>
+        <span>Use Storefront app</span>
+      </div>
+    </div>
+  </section>
+}

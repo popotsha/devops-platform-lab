@@ -1,0 +1,341 @@
+/* Lattice login theme — matches apps/web landing brand */
+
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Outfit:wght@400;500;600;700&display=swap");
+
+:root {
+  --ink: #050816;
+  --mist: #e2e8f0;
+  --panel: rgba(15, 23, 42, 0.78);
+  --line: rgba(148, 163, 184, 0.14);
+  --amber: #22d3ee;
+  --amber-deep: #06b6d4;
+  --sea: #6366f1;
+  --sea-bright: #818cf8;
+  --glow: rgba(99, 102, 241, 0.35);
+  --glow-cyan: rgba(34, 211, 238, 0.22);
+  --danger: #f07167;
+  --ok: #3ecf8e;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+.login-pf body,
+body {
+  color: var(--mist) !important;
+  font-family: "Outfit", "Avenir Next", "Segoe UI", sans-serif !important;
+  background:
+    radial-gradient(1200px 680px at 12% -10%, var(--glow-cyan), transparent 55%),
+    radial-gradient(900px 520px at 88% 8%, var(--glow), transparent 50%),
+    radial-gradient(700px 400px at 50% 100%, rgba(192, 132, 252, 0.1), transparent 60%),
+    linear-gradient(165deg, #050816 0%, #0f172a 46%, #050816 100%) !important;
+  background-size: cover !important;
+}
+
+::selection {
+  background: rgba(34, 211, 238, 0.3);
+}
+
+.login-pf {
+  background: transparent !important;
+}
+
+/* Hide PatternFly default wallpaper / header chrome */
+.login-pf body::before,
+#kc-header,
+.login-pf-page .login-pf-brand,
+#kc-locale {
+  display: none !important;
+}
+
+.login-pf-page {
+  padding: 2.5rem 1rem 3rem !important;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#kc-content,
+#kc-content-wrapper,
+.login-pf-page .container-fluid,
+.card-pf {
+  width: 100%;
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.card-pf,
+.login-pf-page .card-pf {
+  background: var(--panel) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 1.15rem !important;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+  backdrop-filter: blur(18px);
+  padding: 1.75rem 1.6rem 1.5rem !important;
+  margin: 0 auto !important;
+}
+
+/* Form sits flat inside the single card — no nested border */
+#kc-form,
+#kc-form-wrapper {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Brand mark above the card via header wrapper still rendered in some flows */
+#kc-page-title,
+#kc-attempted-username,
+h1#kc-page-title {
+  font-family: "Fraunces", Georgia, serif !important;
+  font-weight: 650 !important;
+  letter-spacing: -0.03em !important;
+  color: #fff !important;
+  font-size: 1.55rem !important;
+  text-align: center !important;
+  margin: 0 0 1.25rem !important;
+}
+
+/* Brand mark + wordmark above the card */
+.login-pf-page::before {
+  content: "S";
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  margin: 0 auto 0.85rem;
+  border-radius: 0.85rem;
+  background: linear-gradient(145deg, #6366f1, #22d3ee);
+  box-shadow: 0 10px 28px rgba(34, 211, 238, 0.25);
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #050816;
+  line-height: 1;
+}
+
+.login-pf-page #kc-content::before {
+  content: "Lattice";
+  display: block;
+  text-align: center;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 1.65rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  background: linear-gradient(90deg, #22d3ee 0%, #818cf8 50%, #c084fc 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin: 0 0 0.35rem;
+}
+
+.login-pf-page #kc-content::after {
+  content: "Secure sign-in for your workspace";
+  display: block;
+  text-align: center;
+  font-size: 0.92rem;
+  color: rgba(226, 232, 240, 0.62);
+  margin: 1.25rem 0 0;
+}
+
+.lattice-logo {
+  display: none !important;
+}
+
+/* Form controls */
+.pf-c-form__label-text,
+label,
+#kc-username,
+.control-label {
+  color: rgba(226, 232, 240, 0.78) !important;
+  font-weight: 500 !important;
+  font-size: 0.9rem !important;
+}
+
+.pf-c-form-control,
+input[type="text"],
+input[type="email"],
+input[type="password"],
+select,
+textarea,
+.form-control {
+  background: rgba(5, 8, 22, 0.55) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 0.7rem !important;
+  color: var(--mist) !important;
+  box-shadow: none !important;
+  min-height: 2.75rem !important;
+  padding: 0.65rem 0.85rem !important;
+  font-family: inherit !important;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.pf-c-form-control:hover,
+input:hover,
+.form-control:hover {
+  border-color: rgba(148, 163, 184, 0.28) !important;
+}
+
+.pf-c-form-control:focus,
+input:focus,
+.form-control:focus {
+  outline: none !important;
+  border-color: var(--amber) !important;
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.22) !important;
+}
+
+.pf-c-form-control::placeholder,
+input::placeholder {
+  color: rgba(226, 232, 240, 0.35) !important;
+}
+
+/* Primary button */
+#kc-login,
+input[type="submit"],
+button[type="submit"],
+.pf-c-button.pf-m-primary,
+.btn-primary,
+#kc-form-buttons input {
+  background: linear-gradient(90deg, #22d3ee 0%, #6366f1 100%) !important;
+  border: none !important;
+  border-radius: 0.75rem !important;
+  color: #050816 !important;
+  font-weight: 700 !important;
+  font-family: inherit !important;
+  font-size: 0.98rem !important;
+  min-height: 2.85rem !important;
+  width: 100% !important;
+  box-shadow: 0 10px 24px rgba(34, 211, 238, 0.25) !important;
+  transition: background 160ms ease, transform 160ms ease, box-shadow 160ms ease !important;
+  cursor: pointer;
+}
+
+#kc-login:hover,
+input[type="submit"]:hover,
+button[type="submit"]:hover,
+.pf-c-button.pf-m-primary:hover,
+.btn-primary:hover {
+  background: linear-gradient(90deg, #06b6d4 0%, #4f46e5 100%) !important;
+  box-shadow: 0 12px 28px rgba(34, 211, 238, 0.35) !important;
+  transform: translateY(-1px);
+}
+
+#kc-form-buttons {
+  margin-top: 0.85rem !important;
+}
+
+/* Links */
+a,
+#kc-registration a,
+#kc-form-options a,
+.login-pf a {
+  color: var(--sea-bright) !important;
+  text-decoration: none !important;
+  font-weight: 500;
+}
+
+a:hover,
+#kc-registration a:hover,
+#kc-form-options a:hover {
+  color: var(--amber) !important;
+}
+
+#kc-registration,
+#kc-registration-container,
+.login-pf-signup,
+#kc-info,
+#kc-info-wrapper {
+  background: transparent !important;
+  color: rgba(226, 232, 240, 0.7) !important;
+  text-align: center !important;
+  margin-top: 1.15rem !important;
+  padding: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.checkbox label,
+.pf-c-check__label,
+#rememberMe + span,
+label[for="rememberMe"] {
+  color: rgba(226, 232, 240, 0.72) !important;
+}
+
+/* Alerts */
+.alert,
+.pf-c-alert,
+#kc-content-wrapper .alert {
+  border-radius: 0.75rem !important;
+  border: 1px solid var(--line) !important;
+  background: rgba(15, 23, 42, 0.65) !important;
+  color: var(--mist) !important;
+  margin-bottom: 1rem !important;
+}
+
+.alert-error,
+.pf-c-alert.pf-m-danger,
+.pf-m-danger {
+  border-color: rgba(240, 113, 103, 0.45) !important;
+  color: #ffd4d0 !important;
+}
+
+.alert-success,
+.pf-c-alert.pf-m-success {
+  border-color: rgba(62, 207, 142, 0.45) !important;
+}
+
+.alert-warning,
+.pf-c-alert.pf-m-warning {
+  border-color: rgba(34, 211, 238, 0.45) !important;
+}
+
+.pf-c-button.pf-m-secondary,
+.btn-default {
+  background: rgba(15, 23, 42, 0.45) !important;
+  border: 1px solid var(--line) !important;
+  color: var(--mist) !important;
+  border-radius: 0.7rem !important;
+}
+
+.pf-c-button.pf-m-secondary:hover,
+.btn-default:hover {
+  border-color: var(--sea-bright) !important;
+  color: #fff !important;
+}
+
+/* Password visibility / input group */
+.pf-c-input-group,
+.input-group {
+  border-radius: 0.7rem;
+}
+
+hr {
+  display: none !important;
+}
+
+/* Footer info strip under card */
+.login-pf-page .login-pf-page-header {
+  display: none !important;
+}
+
+@media (max-width: 480px) {
+  .card-pf,
+  .login-pf-page .card-pf {
+    padding: 1.35rem 1.1rem 1.2rem !important;
+    border-radius: 1rem !important;
+  }
+
+  .login-pf-page #kc-content::before {
+    font-size: 1.4rem;
+  }
+}

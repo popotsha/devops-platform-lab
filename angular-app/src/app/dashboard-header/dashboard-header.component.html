@@ -1,0 +1,90 @@
+@if (auth.isAuthenticated() && auth.userProfile(); as profile) {
+  <div class="user-menu">
+    <button
+      type="button"
+      class="user-menu-trigger"
+      [attr.aria-expanded]="menuOpen"
+      aria-haspopup="menu"
+      aria-controls="admin-account-menu"
+      aria-label="Open account menu"
+      (click)="toggleMenu()"
+    >
+      <span class="user-avatar" aria-hidden="true">
+        {{ auth.displayName().charAt(0).toUpperCase() }}
+      </span>
+      <span class="user-menu-trigger-copy">
+        <span class="user-name">{{ auth.displayName() }}</span>
+        <span class="user-meta">{{ profile.email }}</span>
+      </span>
+      <span class="user-menu-caret" aria-hidden="true">▾</span>
+    </button>
+
+    @if (menuOpen) {
+      <div class="user-menu-panel" id="admin-account-menu" role="menu">
+        <div class="user-menu-header">
+          <span class="user-avatar user-avatar-lg" aria-hidden="true">
+            {{ auth.displayName().charAt(0).toUpperCase() }}
+          </span>
+          <div>
+            <p class="user-name">{{ auth.displayName() }}</p>
+            <p class="user-meta">{{ profile.email }}</p>
+          </div>
+        </div>
+
+        @if (profile.roles.length) {
+          <div class="user-menu-section">
+            <p class="user-menu-label">Roles</p>
+            <div class="role-badges user-menu-roles">
+              @for (role of profile.roles; track role) {
+                <span class="role-badge">{{ role }}</span>
+              }
+            </div>
+          </div>
+        }
+
+        <div class="user-menu-section">
+          <p class="user-menu-label">Account</p>
+          <nav class="user-menu-links" aria-label="Account">
+            <a
+              routerLink="/profile"
+              class="user-menu-link user-menu-link-primary"
+              role="menuitem"
+              (click)="closeMenu()"
+            >
+              <span>My Profile</span>
+              <span class="user-menu-link-hint">Account details & permissions</span>
+            </a>
+            <a
+              routerLink="/dashboard"
+              class="user-menu-link"
+              role="menuitem"
+              (click)="closeMenu()"
+            >
+              <span>Dashboard</span>
+              <span class="user-menu-link-hint">Statistics overview</span>
+            </a>
+            <a
+              class="user-menu-link"
+              role="menuitem"
+              [href]="storefrontUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              (click)="closeMenu()"
+            >
+              <span>Customer Storefront</span>
+              <span class="user-menu-link-hint">Shop as a customer</span>
+            </a>
+          </nav>
+        </div>
+
+        <div class="user-menu-actions">
+          <button type="button" class="btn btn-danger user-menu-logout" (click)="logout()">
+            Logout
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+} @else {
+  <button type="button" class="btn btn-primary" (click)="login()">Login with SSO</button>
+}

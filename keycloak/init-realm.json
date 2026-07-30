@@ -1,0 +1,140 @@
+{
+  "realm": "ms-realm",
+  "enabled": true,
+  "displayName": "Storefront",
+  "displayNameHtml": "Storefront",
+  "loginTheme": "lattice",
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "registrationEmailAsUsername": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "rememberMe": true,
+  "registrationAllowed": false,
+  "smtpServer": {
+    "host": "${SMTP_HOST}",
+    "port": "${SMTP_PORT}",
+    "from": "${SMTP_FROM}",
+    "fromDisplayName": "${SMTP_FROM_DISPLAY}",
+    "replyTo": "",
+    "replyToDisplayName": "",
+    "envelopeFrom": "",
+    "ssl": "${SMTP_SSL}",
+    "starttls": "${SMTP_STARTTLS}",
+    "auth": "true",
+    "user": "${SMTP_USER}",
+    "password": "${SMTP_PASS}"
+  },
+  "roles": {
+    "realm": [
+      {
+        "name": "customer",
+        "description": "Customer role"
+      },
+      {
+        "name": "manager",
+        "description": "Manager role"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "nextjs-app",
+      "name": "Storefront Client",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "frontchannelLogout": true,
+      "rootUrl": "http://localhost:3000",
+      "baseUrl": "http://localhost:3000",
+      "redirectUris": [
+        "http://localhost:3000/*",
+        "http://localhost:3000/api/auth/callback/keycloak"
+      ],
+      "webOrigins": [
+        "http://localhost:3000"
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "http://localhost:3000/*",
+        "frontchannel.logout.url": "http://localhost:3000/api/auth/front-channel-logout",
+        "frontchannel.logout.session.required": "false"
+      },
+      "secret": "4f4c3e7f84c5483b9c3d45a56d7f98a2"
+    },
+    {
+      "clientId": "angular-app",
+      "name": "Dashboard Client",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "serviceAccountsEnabled": false,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "implicitFlowEnabled": false,
+      "frontchannelLogout": true,
+      "rootUrl": "http://localhost:4200",
+      "baseUrl": "http://localhost:4200",
+      "redirectUris": [
+        "http://localhost:4200/*",
+        "http://localhost:4201/*",
+        "http://127.0.0.1:4200/*",
+        "http://127.0.0.1:4201/*"
+      ],
+      "webOrigins": [
+        "http://localhost:4200",
+        "http://localhost:4201",
+        "http://127.0.0.1:4200",
+        "http://127.0.0.1:4201"
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "http://localhost:4200/*##http://localhost:4201/*##http://127.0.0.1:4200/*##http://127.0.0.1:4201/*",
+        "frontchannel.logout.url": "http://localhost:4200/front-channel-logout.html",
+        "frontchannel.logout.session.required": "false"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "manager",
+      "enabled": true,
+      "email": "manager@example.com",
+      "emailVerified": true,
+      "firstName": "Manager",
+      "lastName": "User",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "manager123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["manager"],
+      "clientRoles": {
+        "account": ["view-profile", "manage-account"]
+      }
+    },
+    {
+      "username": "customer",
+      "enabled": true,
+      "email": "customer@example.com",
+      "emailVerified": true,
+      "firstName": "Customer",
+      "lastName": "User",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "customer123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["customer"],
+      "clientRoles": {
+        "account": ["view-profile", "manage-account"]
+      }
+    }
+  ]
+}

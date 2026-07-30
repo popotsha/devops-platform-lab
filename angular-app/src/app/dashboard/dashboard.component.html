@@ -1,0 +1,83 @@
+@if (isLoading) {
+  <section class="panel loading-panel">
+    <p>Loading admin console...</p>
+  </section>
+} @else if (!auth.isAuthenticated()) {
+  <section class="hero-panel">
+    <article class="hero-copy panel">
+      <p class="hero-eyebrow">Admin Console</p>
+      <h2>Operations & inventory control</h2>
+      <p>
+        This Angular app is the admin back-office. Managers run analytics, exports, and full
+        product lifecycle management. Customers get read-only inventory visibility.
+      </p>
+      <ul class="hero-list">
+        <li>Manager: analytics, CRUD, orders management</li>
+        <li>Customer: read-only inventory + own orders</li>
+        <li>Shopping cart lives in the Next.js Storefront</li>
+      </ul>
+      <p class="demo-credentials">
+        Demo users: <code>manager / manager123</code> or <code>customer / customer123</code>
+      </p>
+    </article>
+
+    <article class="hero-card panel">
+      <h3>Compare roles</h3>
+      <p>
+        Sign in as <strong>manager</strong> for full admin powers, or as <strong>customer</strong>
+        to preview limited access.
+      </p>
+    </article>
+  </section>
+} @else {
+  <app-role-access-banner [roles]="userRoles" />
+
+  @if (loadError) {
+    <p class="form-error">{{ loadError }}</p>
+  }
+
+  @if (canManageProducts) {
+    <section class="section-header">
+      <div>
+        <p class="section-eyebrow">Overview</p>
+        <h2>Statistics</h2>
+        <p class="helper-text">Live inventory and order metrics from the API gateway.</p>
+      </div>
+    </section>
+
+    <section class="stats-grid stats-grid-wide">
+      <article class="stat-card panel">
+        <p class="stat-label">Total products</p>
+        <p class="stat-value">{{ analytics?.productCount ?? productCount }}</p>
+      </article>
+      <article class="stat-card panel">
+        <p class="stat-label">Inventory value</p>
+        <p class="stat-value">${{ inventoryValue | number: '1.2-2' }}</p>
+      </article>
+      <article class="stat-card panel">
+        <p class="stat-label">Orders</p>
+        <p class="stat-value">{{ analytics?.orderCount ?? 0 }}</p>
+      </article>
+      <article class="stat-card panel">
+        <p class="stat-label">Confirmed orders</p>
+        <p class="stat-value">{{ analytics?.confirmedOrders ?? 0 }}</p>
+      </article>
+    </section>
+  } @else {
+    <section class="panel locked-features">
+      <h3>Restricted actions</h3>
+      <p>As a <strong>customer</strong>, these admin features are locked:</p>
+      <ul>
+        <li>Inventory analytics dashboard</li>
+        <li>Create, edit, or delete products</li>
+        <li>Manage all orders</li>
+        <li>Notification delivery logs</li>
+        <li>Catalog export</li>
+      </ul>
+      <p class="helper-text">
+        Use the sidebar to open <a routerLink="/products">Products</a> (read-only) or
+        <a routerLink="/orders">Orders</a>. Shopping happens in the Storefront.
+      </p>
+    </section>
+  }
+}

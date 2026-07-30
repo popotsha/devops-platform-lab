@@ -1,0 +1,64 @@
+@if (isLoading) {
+  <section class="panel loading-panel">
+    <p>Loading notifications...</p>
+  </section>
+} @else if (!auth.isAuthenticated()) {
+  <section class="panel">
+    <h2>Sign in required</h2>
+    <p class="helper-text">Log in with SSO to view notifications.</p>
+  </section>
+} @else if (canManageProducts) {
+  <app-role-access-banner [roles]="userRoles" />
+
+  <section class="section-header">
+    <div>
+      <p class="section-eyebrow">Delivery</p>
+      <h2>Notifications</h2>
+      <p class="helper-text">
+        Email notifications sent after successful checkout, with delivery status.
+      </p>
+    </div>
+  </section>
+
+  @if (loadError) {
+    <p class="form-error">{{ loadError }}</p>
+  }
+
+  <article class="panel ops-panel">
+    @if (notifications.length === 0) {
+      <p class="helper-text">
+        No notifications yet. When a customer completes checkout, the notification service sends an
+        order confirmation and records delivery status here.
+      </p>
+    } @else {
+      <div class="ops-table-wrap">
+        <table class="ops-table">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Recipient</th>
+              <th>Subject</th>
+              <th>Status</th>
+              <th>Sent at</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (notification of notifications; track notification.id) {
+              <tr>
+                <td>#{{ notification.orderId }}</td>
+                <td>{{ notification.recipientEmail || '—' }}</td>
+                <td>{{ notification.emailSubject }}</td>
+                <td>
+                  <span class="email-status" [class]="'email-status-' + notification.status">
+                    {{ notification.status }}
+                  </span>
+                </td>
+                <td>{{ (notification.sentAt || notification.createdAt) | date: 'short' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </article>
+}

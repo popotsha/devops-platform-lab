@@ -1,0 +1,20 @@
+<section class="role-banner" [class.role-banner-manager]="primaryRole === 'manager'" [class.role-banner-customer]="primaryRole === 'customer'">
+  <div>
+    <p class="role-banner-eyebrow">Admin console access</p>
+    <h3>
+      Signed in as <strong>{{ primaryRole }}</strong>
+    </h3>
+    <p class="role-banner-copy">
+      @if (primaryRole === 'manager') {
+        Managers control inventory, analytics, and exports from this Angular admin app.
+      } @else {
+        Customers can inspect inventory in read-only mode. Use the Next.js Storefront to shop.
+      }
+    </p>
+  </div>
+  <ul class="role-permissions">
+    @for (item of permissions; track item) {
+      <li>{{ item }}</li>
+    }
+  </ul>
+</section>

@@ -1,0 +1,19 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Keycloak data volume (if mounted locally)
+data/
+
+# Exported realm overrides with real credentials
+*-realm-export.json
+!init-realm.json
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log

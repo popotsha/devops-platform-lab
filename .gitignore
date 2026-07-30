@@ -1,0 +1,31 @@
+# Root secrets / local env
+.env
+.env.local
+*.local
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Dependencies & build
+node_modules/
+dist/
+build/
+.next/
+.angular/
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Terraform (Premium) / local state leftovers
+**/.terraform/
+*.tfstate
+*.tfstate.*
+
+# Misc
+*.pem
+.pnpm-store/

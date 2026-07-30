@@ -1,0 +1,359 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: micro-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  keycloak:
+    build: ./keycloak
+    image: microservice-kit/keycloak:local
+    container_name: micro-keycloak
+    entrypoint: ["/bin/sh", "/opt/keycloak/ms-entrypoint.sh"]
+    command:
+      - start-dev
+      - --hostname
+      - localhost
+      - --hostname-strict
+      - "false"
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+      KC_HTTP_ENABLED: "true"
+      KC_PROXY_HEADERS: "xforwarded"
+      KC_HEALTH_ENABLED: "true"
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      # Same SMTP as notification-service — powers Keycloak “Forgot password?” emails
+      SMTP_HOST: ${SMTP_HOST:-smtp.resend.com}
+      SMTP_PORT: ${SMTP_PORT:-465}
+      SMTP_USER: ${SMTP_USER:-resend}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${KEYCLOAK_SMTP_FROM:-noreply@localhost}
+      SMTP_FROM_DISPLAY_NAME: ${KEYCLOAK_SMTP_FROM_DISPLAY:-Storefront}
+      SMTP_SSL: ${SMTP_SECURE:-true}
+      SMTP_STARTTLS: ${SMTP_STARTTLS:-false}
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./keycloak/init-realm.json:/opt/keycloak/ms-init-realm.template.json:ro
+      - ./keycloak/docker-entrypoint.sh:/opt/keycloak/ms-entrypoint.sh:ro
+      # Mount overrides the baked-in theme so local CSS edits apply without rebuild.
+      - ./keycloak/themes/lattice:/opt/keycloak/themes/lattice:ro
+      - keycloak-data:/opt/keycloak/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      # Keycloak 25+ serves /health on management port 9000 (not published).
+      # Probe the realm on 8080 so "healthy" means OIDC is actually usable.
+      test:
+        [
+          "CMD-SHELL",
+          "exec 3<>/dev/tcp/127.0.0.1/8080 && echo -e 'GET /realms/ms-realm HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -qE 'HTTP/1\\.[01] 200'",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 90s
+
+  nextjs-app:
+    build:
+      context: ./nextjs-app
+      dockerfile: Dockerfile
+    container_name: micro-nextjs-app
+    env_file:
+      - path: ./nextjs-app/.env.local
+        required: true
+      - path: ./catalog-service/.env
+        required: false
+    extra_hosts:
+      - "localhost:host-gateway"
+    environment:
+      OTEL_ENABLED: ${OTEL_ENABLED:-false}
+      OTEL_SERVICE_NAME: nextjs-app
+      NODE_ENV: production
+      PORT: 3000
+      HOST: 0.0.0.0
+      # Localhost safety net (v2/v3 rely on cookie isolation; v1 also has Angular on :4200).
+      # Production can lower this; separate domains avoid Keycloak cookie pile-up.
+      NODE_MAX_HTTP_HEADER_SIZE: "262144"
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_URL_INTERNAL: http://localhost:3000
+      AUTH_URL: http://localhost:3000
+      AUTH_TRUST_HOST: "true"
+      AUTH_SECRET: ${NEXTAUTH_SECRET:-abc123def456ghi789xyz}
+      AUTH_KEYCLOAK_ISSUER: http://localhost:8080/realms/ms-realm
+      API_GATEWAY_URL: http://api-gateway:3001
+      # Stripe (root .env preferred; nextjs-app/.env.local also works via env_file)
+      STRIPE_ENABLED: ${STRIPE_ENABLED:-false}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-}
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:-}
+      LANDING_BRAND_NAME: ${LANDING_BRAND_NAME:-}
+      LANDING_BRAND_MARK: ${LANDING_BRAND_MARK:-}
+      LANDING_TAGLINE: ${LANDING_TAGLINE:-}
+      LANDING_HEADLINE: ${LANDING_HEADLINE:-}
+      LANDING_LEDE: ${LANDING_LEDE:-}
+      LANDING_PRIMARY_CTA_LABEL: ${LANDING_PRIMARY_CTA_LABEL:-}
+      LANDING_PRIMARY_CTA_HREF: ${LANDING_PRIMARY_CTA_HREF:-}
+      LANDING_SECONDARY_CTA_LABEL: ${LANDING_SECONDARY_CTA_LABEL:-}
+      LANDING_SECONDARY_CTA_HREF: ${LANDING_SECONDARY_CTA_HREF:-}
+      LANDING_CLOSING_TITLE: ${LANDING_CLOSING_TITLE:-}
+      LANDING_CLOSING_LEDE: ${LANDING_CLOSING_LEDE:-}
+      LANDING_FOOTER_NOTE: ${LANDING_FOOTER_NOTE:-}
+      LANDING_COMPANY: ${LANDING_COMPANY:-}
+    ports:
+      - "3000:3000"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      api-gateway:
+        condition: service_started
+
+  angular-app:
+    build:
+      context: ./angular-app
+      dockerfile: Dockerfile
+    container_name: micro-angular-app
+    environment:
+      OTEL_ENABLED: ${OTEL_ENABLED:-false}
+      OTEL_SERVICE_NAME: angular-app
+      OTEL_DEPLOYMENT_ENVIRONMENT: local
+    ports:
+      - "4200:80"
+    depends_on:
+      - keycloak
+
+  redis:
+    image: redis:7-alpine
+    container_name: micro-redis
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: micro-rabbitmq
+    ports:
+      - "127.0.0.1:5672:5672"
+      - "127.0.0.1:15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  catalog-service:
+    build:
+      context: ./catalog-service
+      dockerfile: Dockerfile
+    container_name: catalog-service
+    env_file:
+      - path: ./catalog-service/.env
+        required: false
+    environment:
+      OTEL_ENABLED: ${OTEL_ENABLED:-false}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: catalog_db
+      ORDER_SERVICE_URL: http://order-service:4001
+      KEYCLOAK_ISSUER: http://localhost:8080/realms/ms-realm
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/ms-realm/protocol/openid-connect/certs
+      KEYCLOAK_CLIENT_ID: nextjs-app
+      OTEL_SERVICE_NAME: catalog-service
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://127.0.0.1:4000/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    container_name: order-service
+    env_file:
+      - path: ./catalog-service/.env
+        required: false
+    environment:
+      OTEL_ENABLED: ${OTEL_ENABLED:-false}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: order_db
+      PORT: 4001
+      CATALOG_SERVICE_URL: http://catalog-service:4000
+      KEYCLOAK_ISSUER: http://localhost:8080/realms/ms-realm
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/ms-realm/protocol/openid-connect/certs
+      KEYCLOAK_CLIENT_ID: nextjs-app
+      OTEL_SERVICE_NAME: order-service
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+    ports:
+      - "4001:4001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      catalog-service:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://127.0.0.1:4001/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    container_name: notification-service
+    env_file:
+      - path: ./catalog-service/.env
+        required: false
+    environment:
+      OTEL_ENABLED: ${OTEL_ENABLED:-false}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: notification_db
+      PORT: 4002
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      KEYCLOAK_ISSUER: http://localhost:8080/realms/ms-realm
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/ms-realm/protocol/openid-connect/certs
+      KEYCLOAK_CLIENT_ID: nextjs-app
+      OTEL_SERVICE_NAME: notification-service
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      STOREFRONT_URL: http://localhost:3000
+      SMTP_ENABLED: ${SMTP_ENABLED:-false}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      EMAIL_FROM: ${EMAIL_FROM:-Microservice Storefront <orders@localhost>}
+    ports:
+      - "4002:4002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://127.0.0.1:4002/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    env_file:
+      - path: ./catalog-service/.env
+        required: false
+    environment:
+      OTEL_ENABLED: ${OTEL_ENABLED:-false}
+      OTEL_SERVICE_NAME: api-gateway
+      API_GATEWAY_PORT: 3001
+      CATALOG_SERVICE_URL: http://catalog-service:4000
+      ORDER_SERVICE_URL: http://order-service:4001
+      NOTIFICATION_SERVICE_URL: http://notification-service:4002
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/ms-realm/protocol/openid-connect/certs
+      KEYCLOAK_ISSUER: http://localhost:8080/realms/ms-realm
+      KEYCLOAK_CLIENT_ID: nextjs-app
+      CORS_ORIGINS: http://localhost:3000,http://localhost:4200,http://localhost:4201,http://127.0.0.1:4200,http://127.0.0.1:4201
+      THROTTLE_TTL_MS: 60000
+      THROTTLE_LIMIT: 100
+    ports:
+      - "3001:3001"
+    depends_on:
+      catalog-service:
+        condition: service_healthy
+      order-service:
+        condition: service_healthy
+      notification-service:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://127.0.0.1:3001/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  postgres-data:
+  keycloak-data:

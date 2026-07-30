@@ -1,0 +1,21 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Postgres data volume (if mounted locally)
+data/
+pgdata/
+
+# Dump files
+*.sql.gz
+*.dump
+*.backup
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log

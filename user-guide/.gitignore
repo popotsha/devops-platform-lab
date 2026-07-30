@@ -1,0 +1,10 @@
+# Local PDF/HTML build (dev only)
+node_modules/
+package.json
+package-lock.json
+Microservice-Starter-Kit-Guide.html
+Microservice-Starter-Kit-Guide.pdf
+build-pdf.sh
+build-pdf.cjs
+guide.css
+copy-screenshots.sh

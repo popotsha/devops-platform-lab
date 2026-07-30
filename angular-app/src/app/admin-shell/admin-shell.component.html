@@ -1,0 +1,104 @@
+<div
+  class="admin-shell"
+  [class.admin-shell-nav-open]="sidebarOpen && auth.isAuthenticated()"
+  [class.admin-shell-nav-collapsed]="!sidebarOpen || !auth.isAuthenticated()"
+>
+  @if (auth.isAuthenticated()) {
+    <aside class="admin-sidebar" aria-label="Primary" id="admin-sidebar">
+      <div class="admin-sidebar-brand">
+        <a routerLink="/dashboard" class="sidebar-brand-link" (click)="closeSidebarIfMobile()">
+          <span class="brand-icon brand-icon-sm admin-icon">AC</span>
+          <span>
+            <span class="sidebar-brand-eyebrow">Operations portal</span>
+            <span class="sidebar-brand-title">Admin</span>
+          </span>
+        </a>
+      </div>
+
+      <nav class="admin-sidebar-nav">
+        <p class="side-nav-group-label">Workspace</p>
+        @for (item of visibleNavItems; track item.id) {
+          @if (item.id === 'profile') {
+            <p class="side-nav-group-label">Account</p>
+          }
+          <a
+            [routerLink]="item.path"
+            routerLinkActive="side-nav-link-active"
+            class="side-nav-link"
+            (click)="closeSidebarIfMobile()"
+          >
+            <span class="side-nav-icon" aria-hidden="true">{{ navIcon(item.id) }}</span>
+            <span>
+              <span class="side-nav-label">{{ item.label }}</span>
+              <span class="side-nav-hint">{{ item.hint }}</span>
+            </span>
+          </a>
+        }
+
+        <p class="side-nav-group-label">External</p>
+        <a
+          class="side-nav-link"
+          [href]="storefrontUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <span class="side-nav-icon" aria-hidden="true">S</span>
+          <span>
+            <span class="side-nav-label">Storefront</span>
+            <span class="side-nav-hint">Customer shop</span>
+          </span>
+        </a>
+      </nav>
+    </aside>
+
+    <button
+      type="button"
+      class="admin-sidebar-backdrop"
+      aria-label="Close navigation"
+      (click)="sidebarOpen = false"
+    ></button>
+  }
+
+  <div class="admin-frame">
+    <header class="admin-topbar">
+      <div class="admin-topbar-left">
+        @if (auth.isAuthenticated()) {
+          <button
+            type="button"
+            class="admin-menu-toggle"
+            [attr.aria-label]="sidebarOpen ? 'Close navigation' : 'Open navigation'"
+            [attr.aria-expanded]="sidebarOpen"
+            aria-controls="admin-sidebar"
+            (click)="toggleSidebar()"
+          >
+            <span class="burger-icon" [class.burger-icon-open]="sidebarOpen" aria-hidden="true">
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+          </button>
+          <div class="admin-page-heading">
+            <p class="brand-eyebrow">Admin console</p>
+            <h1 class="admin-page-title">{{ pageTitle }}</h1>
+          </div>
+        } @else {
+          <a routerLink="/dashboard" class="header-brand">
+            <span class="brand-icon brand-icon-sm admin-icon">AC</span>
+            <span>
+              <p class="brand-eyebrow">Operations portal</p>
+              <h1 class="brand-title">Admin Console</h1>
+            </span>
+          </a>
+        }
+      </div>
+
+      <div class="admin-topbar-right">
+        <app-dashboard-header />
+      </div>
+    </header>
+
+    <main class="dashboard-main">
+      <router-outlet />
+    </main>
+  </div>
+</div>
